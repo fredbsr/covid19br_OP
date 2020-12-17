@@ -14,7 +14,7 @@
 /* Styles for Title Slide */
 .reveal h1.title {
   margin: 50px 0 30px 0;
-  font-size: 80px;
+  font-size: 70px;
   }
 
 .reveal h1.subtitle {
@@ -38,15 +38,15 @@
 
 
 .reveal .slide.level2 h1 {
-  font-size: 48px;
+  font-size: 40px;
 }
 
 .reveal .slide.level2 h2 {
-  font-size: 32px;
+  font-size: 30px;
 }
 
 .reveal .slide.level2 h3 {
-  font-size: 20px;
+  font-size: 18px;
 }
 
 .reveal pre code {

@@ -1,0 +1,470 @@
+---
+title: 'Entre afeto e aversão'
+subtitle: Novos eixos da polarização pós COVID-19 no Brasil
+
+author: 
+- Carlos Pereira
+- Amanda Medeiros
+- Frederico Bertholini
+
+date: "Dezembro, 2020"
+output:
+  
+  revealjs::revealjs_presentation:
+    
+    theme: dark
+    transition: slide
+    navigationMode: default
+    self_contained: true
+    css: slides.css
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE,warning=F,message=F}
+knitr::opts_chunk$set(echo = FALSE,
+                      fig.margin=TRUE,
+                      warning = F,
+                      message = F,
+                      fig.height=6,
+                      fig.width=9#,
+                  #    fig.align = 'center'
+                  )
+
+lista.de.pacotes = c("tidyverse","haven","lubridate","janitor","readxl",
+                     "stringr","repmis","pander","scales",
+                     #"srvyr","ggstatsplot",
+                     "flextable","compareGroups",
+                     "magrittr","ggridges","ggpubr","ggdark",
+                     "hrbrthemes","viridis","extrafont",
+                     "dabestr","patchwork") # escreva a lista de pacotes
+
+novos.pacotes <- lista.de.pacotes[!(lista.de.pacotes %in%
+                                      installed.packages()[,"Package"])]
+if(length(novos.pacotes) > 0) {install.packages(novos.pacotes)}
+lapply(lista.de.pacotes, require, character.only=T)
+rm(lista.de.pacotes,novos.pacotes)
+gc()
+
+loadfonts()
+
+# Rodando o namespace
+load("env.RData")
+# Rodando o namespace
+load("dados_gerais.RData")
+# Rodando df3
+df3 <- read_rds("df3.rds")
+# filtrando apenas direita
+drt.df3 <- df3 %>%
+  dplyr::filter(ideologia>3)
+
+df_join %<>% bind_rows(df3 %>% dplyr::select(names(df_join %>%dplyr::select(-Id)),covid_n,-covid) %>%
+                         rename(covid=covid_n))
+
+tema_dens <-
+  theme(plot.margin = ggplot2::margin(0, 0, 0, 0, "cm"),
+      text = element_text(family = "Lato") )
+
+
+paleta <- c( "#4ACFAC",
+             "#BB86FC",
+             "#087099",#"#7EBCED",
+             "#FFA48E",
+             "#36C7D0")
+
+cores = paleta
+
+fonte_t = "Arial Narrow"
+
+mapa_hex_voto22 <- readRDS("mapa_hex_voto22.rds")
+
+```
+
+
+# Questões de interesse
+
+Choque Exógeno: COVID-19 <br>
+- <amar>Altera o eixo da polarização</amar> (isolamento social)
+
+<yt>Revisitando a tensão federativa</yt>
+<p class="center">
+Bolsonaro > consequências econômicas <br>
+vs.<br>
+Governadores > riscos à saúde (ainda?)
+</p>
+
+<yt>Pertencimento de grupo</yt>
+<p class="center">
+In-group > contra o isolamento (e a favor de Bolsonaro) <br>
+vs.<br>
+Out-group > a favor do isolamento (e contra Bolsonaro) <br>
+</p>
+
+
+#	Pesquisa de opinião por meio de survey online (com apoio do Estadão)
+
+1a. rodada: Entre 28.mar e 04.abr. n = 7.848
+
+2a. rodada: Entre 24.mai e 05.jun. n = 6.991
+
+  -- Experimento conjoint*
+  
+3a. rodada
+  
+  
+
+# Novos eixos de polarização (ou despolarização)
+
+- Consenso do Centro à Esquerda: <yt>a favor do isolamento e contra as ações do Presidente</yt>.
+
+- Popularidade "derreteu": 40% -> 28%
+
+- A <amar>direita</amar>, porém, ficou <amar>dividida</amar>!
+
+- A politização da pandemia
+
+
+# Avaliação sobre o isolamento por ideologia {.center}
+```{r}
+read_rds("compara_ondas_fig.rds") * 
+  ggdark::dark_theme_minimal() * 
+  theme(plot.background = element_rect(color= NA,size = .1),
+        panel.background = element_rect(color = NA,size = .1),
+        panel.border = element_blank(),
+        
+        legend.position = "bottom",
+        legend.key.height =unit(.75,"line"),
+        panel.spacing=grid::unit(.25, "lines"),
+        axis.text.y = element_blank()) 
+
+```
+
+
+# {.center}
+
+<h1> O que explica esse comportamento? </h1>
+
+
+# O espectro da morte em abril
+
+- À medida que os indivíduos tomam conhecimento de <amar>vítimas fatais</amar> em seu convívio próximo, as coisas começam a mudar.
+
+- Ficam mais sensíveis ao isolamento, estão dispostos a praticarem por mais tempo. 
+
+- Avaliam pior o Presidente e melhor os Governadores.
+
+
+# Neste novo eixo de polarização, a <yt>exposição à morte importa</yt>. 
+
+- Tanto no isolamento, quanto na posição em relação aos políticos
+
+O medo da morte é tão grande que relativiza as outras dimensões
+
+Como se relacionam opiniões sobre isolamento, prejuízo econômico e proximidade com pessoas afetadas pela doença?
+
+# Estimações do apoio ao isolamento por prejuízo econômico e exposição aos efeitos da Covid-19 {.center}
+
+```{r,eval=T}
+
+library(jtools)
+
+coefsnames = c(
+               "Prejuízo econômico"="prejuizo",
+               "Covid: Leve"="covidleve",
+               "Covid: Grave"="covidgrave",
+               "Covid: Morte"="covidmorte",
+               "CovidLeve:Prejuizo"="covidleve:prejuizo",  
+               "CovidGrave:Prejuizo"="covidgrave:prejuizo",
+               "CovidMorte:Prejuizo"="covidmorte:prejuizo",
+               "Renda 3 a 5SM"="rendaDe 3 a 5SM",
+               "Renda 5 a 10SM"="rendaDe 5 a 10SM",
+               "Renda +de 10SM"="rendaMais de 10SM",
+               "Sexo Masculino"="sexoMasculino",
+               "Idade 45+"="idade")
+
+
+plot_summs(fit_a,fit_b,fit_c, fit_d,#fit_clm, 
+           scale = TRUE, robust = T,
+           point.shape = F,
+           ci_level = 0.95,
+           colors = cores,
+           legend.title = "Modelos",
+           coefs = coefsnames,
+           
+           model.names = c("OLS: covid",
+                           "OLS: covid*prejuizo ",
+                           "OLS: prejuizo +\ncovid +\nrenda ",
+                           "OLS: prejuizo +\ncovid +\nrenda +\nsexo +\nidade "#,"CLM: prejuizo +\ncovid  "
+                           )) +
+  labs(x="Estimação: Isolamento social",y="") +
+    dark_theme_minimal() +
+ theme(axis.text.y = element_text(family = fonte_t,size=9),
+         axis.text.x = element_text(family = fonte_t,size=8),
+        legend.title  = element_text(family = fonte_t),
+       axis.title.x = element_text(family = fonte_t),
+       text = element_text(family = fonte_t))
+
+
+```
+
+
+#  Conclusões da 1a. rodada
+
+1. Lideranças que sinalizam esforço para combater a pandemia podem extrair maiores benefícios do que aquelas mais precupadas em evitar deterioração econômica.
+
+<br>
+
+2. A direita se dividiu, porém a divisão diminui à medida que o risco de morte se torna algo mais palpável.
+
+<br>
+
+<h2 class="center"><amar>Quem continua apoiando Bolsonaro?</amar></h2>
+
+# Como explicar?
+
+A proporção dos que declaram conhecer alguém infectado pela covid-19 aumentou, mas a aprovação de Bolsonaro melhorou na Direita! 
+
+1a. rodada ~ 35% (18% no estágio mais grave; 7% vieram a óbito). 
+
+2a. rodada ~ 71% (39% no estágio mais grave; 20% vieram a falecer).
+
+3a. rodada ~ 94% (34% vieram a falecer).
+
+# 2a. Rodada - Entendendo o efeito do Conservadorismo
+
+Conjoint:
+
+Pauta: Corrupcao vs. Social <br>
+Partidos: Antipartido vs. Propartido <br>
+Valores: Conservador vs.Progressista <br>
+PolEcon: Liberal vs.Desenvolvimentista <br>
+
+
+# Avaliação de Bolsonaro {.center}
+```{r}
+barras_importancia <-
+ importancia3 %>%
+  ggplot(aes(x=dim,y=value,fill=name,color=name)) +
+  geom_bar(color=NA,alpha=.75,stat = "identity") +
+  geom_text(fontface="bold",size=4,vjust=-.5,aes(label=paste0(round(value,1),"%"))) +
+  facet_grid(name~dim,scales = "free",switch = "x",
+             labeller = labeller(name = c("Bolsonaro_bem"="Avaliam BEM Bolsonaro",
+                                             "Bolsonaro_mal"="Avaliam MAL Bolsonaro"))) +
+  labs(x="",y="") +
+  coord_cartesian(clip = "on",ylim = c(0,40),expand = F) + 
+  scale_fill_manual(values = c("dodgerblue4","indianred4")) +
+  scale_color_manual(values = c("dodgerblue4","indianred4")) +
+  theme_ipsum_mod +
+   ggdark::dark_mode() +
+  theme(legend.position = "none",
+        strip.text.y = element_text(size=12,face = "bold"),
+        axis.text = element_blank(),
+        axis.text.x = element_blank())
+
+valencias_conjoint <-
+  m1m2 %>%
+  ggplot(aes(x=name,y=value,color=Perfil)) +
+  geom_jitter(alpha=.025) +
+  stat_summary(fun = mean, 
+               geom = "point") + 
+  
+  stat_summary(fun.data = mean_cl_boot,  
+               geom = "errorbar") +
+  geom_hline(yintercept = 0,linetype=2) +
+  geom_text(aes(y=valor_esq,label=valencia_esq),
+            color="white",
+            size=3,check_overlap = T) +
+  geom_text(aes(y=valor_dir,label=valencia_dir),
+            color="white",
+            size=3,check_overlap = T) +
+  facet_grid(Perfil~dim,scales = "free",switch = "x") +
+  labs(x="",y="") +
+  scale_fill_manual(values = c("dodgerblue4","indianred4")) +
+  scale_color_manual(values = c("dodgerblue4","indianred4")) +
+  coord_cartesian(clip = "on",ylim = c(-2.5,2.5),expand = F) + 
+  theme_ipsum_mod +
+  ggdark::dark_mode() +
+  theme(legend.position = "none",
+        strip.text.y = element_blank(),
+               #axis.text.x = element_text(angle = 45)
+               axis.text.x = element_blank()) 
+# Entra fig2
+valencias_conjoint + barras_importancia + patchwork::plot_layout(widths = c(2.5,1)) 
+
+
+
+
+```
+
+
+# Voto em 2022 {.center}
+```{r}
+preferences_cargas %>%
+  dplyr::filter(ideologia>3) %>%
+  
+  left_join(
+    preferences_cargas %>%
+      dplyr::filter(ideologia>3) %>%
+      group_by(voto_bolsonaro_grupo) %>%
+      summarise(n=n()) %>% 
+      mutate(prop=paste0("(",round(100*prop.table(n),0),"%)"))
+  ) %>%
+  
+  mutate(voto_bolsonaro=forcats::fct_recode(factor(voto_bolsonaro_grupo),
+    "Não votaria de jeito nenhum em Bolsonaro"="Anti-Bolsonaro",
+    "Só votaria em Bolsonaro se o opositor fosse de esquerda ou do PT"="Anti-esquerda",
+    "Votará em Bolsonaro provavelmente ou com certeza"="Pro-Bolsonaro"),
+    voto_bolsonaro=str_wrap(paste(voto_bolsonaro,prop),35)) %>%
+  ggplot(aes(x=Conservador,y=Liberal,
+             color=voto_bolsonaro,
+             fill=voto_bolsonaro,
+                           group=voto_bolsonaro)) +
+  
+  geom_hex(alpha=.75,color=NA,bins=55) +
+  #geom_jitter(alpha=.75,size=.75) +
+  stat_ellipse(type = "norm",size=.75,linetype = 2) +
+ # stat_ellipse(type = "euclid",level=2,size=1.5,linetype = 2) +
+ gghighlight::gghighlight(label_key = NULL,
+                        unhighlighted_params = list(fill='grey75',
+                                                    color=NA,
+                                                    alpha=.5)
+                          ) + 
+  
+  geom_vline(xintercept = 0) + geom_hline(yintercept = 0) +
+  scale_x_continuous(breaks = c(-5,-2.5,0,2.5,5),
+                     limits = c(-6,6),
+                     labels = c("progressista","","","","conservador")) +
+  scale_y_continuous(breaks = c(-5,-2.5,0,2.5,5),
+                     limits = c(-6,6),
+                     labels = c("desenvolvimentista","","","","liberal")) +
+  labs(y="Preferência de Política Econômica",
+       x="Preferência de visão de mundo",
+       color="",
+       fill=""#,
+    #   title = "Expectativas de voto por perfil ideológico dos eleitores da direita e\ncentro-direita para Bolsonaro em 2022"
+     
+    ) +
+  theme_ipsum_mod +
+  ggdark::dark_mode() +
+  facet_wrap(~voto_bolsonaro,ncol = 3) +
+  theme(legend.position = "none",
+        legend.text = element_text(size=10),
+        axis.text.y = element_text(angle=90,hjust = 0),
+        axis.title = element_text(size=10),
+        #strip.text = element_blank()
+        )
+```
+
+
+# Estimações do voto  {.center}
+```{r}
+pred_covid <- jtools::effect_plot(model=reg.log,pred=covid_n,interval = T) +
+  scale_x_continuous("Exposição à covid-19",
+                     breaks = c(1,2,3,4),
+                     labels = c("Livre","Leve","Grave","Morte")) +
+  scale_y_continuous(labels = scales::percent,
+                     "Probabilidade de voto",
+                     limits = c(0,1),
+                     breaks = c(0,.05,.1,.15,.20,.25,.30,.35,.5,.75,1))  + 
+  ggtitle("Efeitos marginais") +
+  theme_ipsum_mod +
+   ggdark::dark_mode() +
+  theme(panel.spacing=grid::unit(.5, "lines"),
+        plot.margin = ggplot2::margin(4, 4, 4, 4))
+  
+pred_conserva<- jtools::effect_plot(model=reg.log,pred=Conservador,interval = T) +
+  scale_x_continuous("Conservadorismo",
+                     breaks = c(-2.5,0,2.5,5),
+                     labels = c("Progressista","","Conservador","")) +
+  scale_y_continuous(labels = scales::percent,
+                     "Probabilidade de voto",
+                     limits = c(0,1)) +
+  theme_ipsum_mod +
+   ggdark::dark_mode() +
+  theme(axis.text.y = element_blank(),
+        axis.title.y = element_blank(),
+        panel.spacing=grid::unit(.5, "lines"),
+        plot.margin = ggplot2::margin(4, 4, 4, 4))
+
+
+plot_reg <- jtools::plot_summs(reg.log,exp = T,
+                               coefs=c( "Exposição à covid" = "covid_n",
+                                        "Prejuízo econômico" = "prejuizo_d1",
+                                        "Conservadorismo" = "Conservador",
+                                        "Liberalismo" = "Liberal",
+                                        "Antipartidarismo" = "Antipartido",
+                                        "Pauta anticorrupção" = "Corrupcao"#,"evangelico","covid_n:Conservador","covid_n:prejuizo_d1"
+                                        )
+                               ) +
+  scale_y_discrete(position = "left","") + 
+  scale_x_continuous("(exp(b)-1)",
+                     breaks = c(.75,1,1.25,1.75),
+                     labels = c("-25%","0","+25%","+75%")) +
+  ggtitle("Modelo de regressão") +
+  theme_ipsum_mod +
+  ggdark::dark_mode() +
+  theme(panel.spacing=grid::unit(.5, "lines"),
+        plot.margin = ggplot2::margin(4, 4, 4, 4))
+
+# Entra 
+regressao2_plot <- plot_reg + pred_covid + pred_conserva + plot_layout(widths = c(2,1,1))
+
+regressao2_plot * theme(plot.background = element_rect(color= NA),
+        panel.background = element_rect(color = NA),
+        panel.border = element_blank())
+```
+
+
+# 3a. rodada - Vacina polarizada
+```{r}
+df3 %>% dplyr::select(bolsonaro_app,vacina_obrigatoria) %>% drop_na %>%
+
+  tabyl(vacina_obrigatoria,bolsonaro_app) %>%
+  janitor::adorn_percentages("col") %>%
+  #  janitor::adorn_pct_formatting() %>%
+  pivot_longer(-vacina_obrigatoria) %>%
+  # mutate(vacina_obrigatoria=forcats::fct_recode(vacina_obrigatoria,
+  #                                               "No"="Não","idk"="Não sei","Yes"="Sim"),
+  #        name=forcats::fct_recode(factor(name),
+  #                                               "Approve Bolsonaro"="Aprova Bolsonaro",
+  #                                 "Disapprove Bolsonaro"="Reprova Bolsonaro")) %>%
+  ggplot(aes(fill=vacina_obrigatoria,y=value,x=vacina_obrigatoria,
+             alpha=paste(vacina_obrigatoria,name))) +
+  geom_bar(stat = "identity",color=NA) +
+  geom_text(aes(label=paste0(round(100*value,0),"%")),vjust=-.1,fontface="bold") +
+  facet_wrap(vars(name)) +
+  scale_y_continuous(labels = scales::percent) +
+  scale_alpha_manual(values = c(.5,.5,1,.5,.5,1)) +
+  labs(y="",x="",fill="Vaccination deveria ser obrigatória?") +
+  guides(alpha="none") +
+  ggdark::dark_theme_minimal() + theme(legend.position = "top",
+                          legend.text = element_text(size=12),
+                          strip.text = element_text(family = fonte_t,size = 12))
+```
+
+
+# Experimento Renda Cidadã
+
+Controle: SEM ganho eleitoral de Bolsonaro
+
+Tratamento: COM ganho eleitoral de Bolsonaro
+
+FOTO
+
+# Aversão vs. Afeição
+```{r}
+df3 %>% dplyr::select(efeito,bolsonaro_app,ideologia_bin,tratamento) %>% drop_na %>%
+  mutate(bolso_ideo=paste(ideologia_bin,bolsonaro_app),efeito=scales::rescale(efeito,to = c(0, 1))) %>% 
+  dplyr::filter(bolso_ideo != "Esquerda Aprova Bolsonaro") %>%
+  ggplot(aes(y=efeito,x=factor(tratamento),group=bolso_ideo)) +
+  stat_summary(fun=mean, geom="point", fill="grey70") +
+  stat_summary(fun.data=mean_cl_boot, geom="errorbar", width=0) +
+  
+  scale_y_continuous(labels=percent_format(), limits=c(0,1),"Apoio ao 'Renda Cidadã' ") +
+  scale_x_discrete(labels=c("Controle:\nSEM\nganho eleitoral\nde Bolsonaro",
+                            "Tratamento:\nCOM\nganho eleitoral\nde Bolsonaro"),"") +
+  geom_hline(yintercept = .5) +
+  facet_wrap(vars(bolso_ideo),nrow = 1) +
+  ggdark::dark_theme_minimal()
+```
+
