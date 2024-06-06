@@ -7,9 +7,7 @@ author:
 - Frederico Bertholini
 date: "Dezembro, 2020"
 output:
-  
   revealjs::revealjs_presentation:
-    
     theme: dark
     transition: slide
     navigationMode: default
