@@ -1,7 +1,6 @@
 ---
 title: 'Entre afeto e aversão'
 subtitle: Novos eixos da polarização pós COVID-19 no Brasil
-
 author: 
 - Carlos Pereira
 - Amanda Medeiros
@@ -11,12 +10,12 @@ date: "Dezembro, 2020"
 output:
   
   revealjs::revealjs_presentation:
+    
     theme: dark
     transition: slide
     navigationMode: default
     self_contained: true
     css: slides.css
-    
 editor_options:
   chunk_output_type: console
 ---
